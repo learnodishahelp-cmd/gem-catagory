@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Resource Hub</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 15px; /* Smaller padding for mobile */
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin: 20px 0 30px;
+        }
+
+        header h1 {
+            font-size: 1.75rem;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Controls Section */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 30px;
+            align-items: center;
+        }
+
+        .search-bar {
+            width: 100%;
+            max-width: 500px;
+            padding: 14px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 30px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+            appearance: none; /* Removes iOS inner shadow */
+        }
+
+        .search-bar:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        /* Category Scroll for Mobile */
+        .filter-group {
+            display: flex;
+            flex-wrap: nowrap; /* Keep buttons in one line on mobile */
+            overflow-x: auto; /* Allow horizontal swiping */
+            width: 100%;
+            padding: 5px 0 15px;
+            gap: 8px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Hide scrollbar Firefox */
+        }
+
+        .filter-group::-webkit-scrollbar {
+            display: none; /* Hide scrollbar Chrome/Safari */
+        }
+
+        /* Center filters on Desktop, Left-align on Mobile */
+        @media (min-width: 768px) {
+            .filter-group {
+                flex-wrap: wrap;
+                justify-content: center;
+                overflow-x: visible;
+            }
+        }
+
+        .filter-btn {
+            white-space: nowrap; /* Prevent text wrapping inside buttons */
+            padding: 10px 20px;
+            border: none;
+            background: #e2e8f0;
+            color: var(--text-main);
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Responsive Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr; /* 1 column on mobile */
+            gap: 20px;
+        }
+
+        @media (min-width: 640px) {
+            .grid { grid-template-columns: repeat(2, 1fr); } /* 2 columns on tablets */
+        }
+
+        @media (min-width: 1024px) {
+            .grid { grid-template-columns: repeat(3, 1fr); } /* 3 columns on desktop */
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #f1f5f9;
+        }
+
+        .card-tag {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .card h3 {
+            margin: 0 0 8px 0;
+            font-size: 1.15rem;
+        }
+
+        .card p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            flex-grow: 1;
+        }
+
+        .btn-link {
+            text-align: center;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            padding: 14px; /* Larger tap target for mobile */
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Study Hub</h1>
+            <p>Resources for every subject</p>
+        </header>
+
+        <div class="controls">
+            <input type="text" id="searchInput" class="search-bar" placeholder="Search resources...">
+            
+            <div class="filter-group">
+                <button class="filter-btn active" data-cat="all">All</button>
+                <button class="filter-btn" data-cat="math">Math</button>
+                <button class="filter-btn" data-cat="science">Science</button>
+                <button class="filter-btn" data-cat="language">Language</button>
+                <button class="filter-btn" data-cat="social science">Social Science</button>
+                <button class="filter-btn" data-cat="general">General</button>
+            </div>
+        </div>
+
+        <div class="grid" id="resourceGrid">
+            </div>
+    </div>
+
+    <script>
+        // Data Array - Same as before
+        const resources = [
+            {
+                title: "Khan Academy",
+                url: "https://www.khanacademy.org",
+                description: "Interactive exercises and videos for math and science.",
+                category: "math"
+            },
+            {
+                title: "Duolingo",
+                url: "https://www.duolingo.com",
+                description: "The world's most popular way to learn a language online.",
+                category: "language"
+            },
+            {
+                title: "NASA STEM",
+                url: "https://www.nasa.gov/stem",
+                description: "Explore the universe with official NASA resources and activities.",
+                category: "science"
+            },
+            {
+                title: "BINDU",
+                url: "https://www.youtube.com/watch?v=h0E8pE_T0Lc",
+                description: "youtube",
+                category: "language"
+            },
+            {
+                title: "National Geographic",
+                url: "https://www.nationalgeographic.org",
+                description: "Geography, history, and social science mapping tools.",
+                category: "social science"
+            },
+            {
+                title: "Wikipedia",
+                url: "https://www.wikipedia.org",
+                description: "The free encyclopedia that anyone can edit.",
+                category: "general"
+            }
+        ];
+
+        let currentCategory = 'all';
+        let searchTerm = '';
+
+        function render() {
+            const grid = document.getElementById('resourceGrid');
+            grid.innerHTML = '';
+
+            const filtered = resources.filter(res => {
+                const matchesTab = currentCategory === 'all' || res.category === currentCategory;
+                const matchesSearch = res.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                    res.description.toLowerCase().includes(searchTerm.toLowerCase());
+                return matchesTab && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div class="no-results">Nothing found.</div>';
+                return;
+            }
+
+            filtered.forEach(res => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-tag">${res.category}</div>
+                    <h3>${res.title}</h3>
+                    <p>${res.description}</p>
+                    <a href="${res.url}" target="_blank" class="btn-link">Open Website</a>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchTerm = e.target.value;
+            render();
+        });
+
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentCategory = btn.dataset.cat;
+                render();
+            });
+        });
+
+        render();
+    </script>
+</body>
+</html>
